@@ -8,7 +8,7 @@ const App = () => {
           {/* ChatBot header */}
           <div className="header-info">
             <ChatBotIcon />
-            <h2 className="logo-text">Smith-ChatBot</h2>
+            <h2 className="logo-text">Ash-Bot</h2>
           </div>
           <button className="material-symbols-rounded">Keyboard_arrow_down</button>
         </div>
@@ -33,7 +33,7 @@ const App = () => {
 
         {/* ChatBot footer */}
         <div className="chat-footer">
-          <form action="" className="chat-for">
+          <form action="" className="chat-form">
             <input type="text" className="message-input" placeholder="Message...." required/>
             <button className="material-symbols-rounded">arrow_upward</button>
           </form>
