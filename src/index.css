@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Inter", sans-serif;
+}
+
+body {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(#f4f0ff, #dacdff)
+}
+
+.chatbot-popup {
+    width: 420px;
+    background: #fff;
+    border-radius: 15px;
+}
