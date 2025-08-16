@@ -8,7 +8,7 @@ const App = () => {
           {/* ChatBot header */}
           <div className="header-info">
             <ChatBotIcon />
-            <h2 className="logo-text">Ash-Bot</h2>
+            <h2 className="logo-text">Smith-Bot</h2>
           </div>
           <button className="material-symbols-rounded">Keyboard_arrow_down</button>
         </div>
