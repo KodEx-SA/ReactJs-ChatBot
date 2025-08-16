@@ -1,4 +1,5 @@
 import ChatBotIcon from "./components/ChatBotIcon"
+import ChatForm from "./components/ChatForm"
 
 const App = () => {
   return (
@@ -33,10 +34,7 @@ const App = () => {
 
         {/* ChatBot footer */}
         <div className="chat-footer">
-          <form action="" className="chat-form">
-            <input type="text" className="message-input" placeholder="Message...." required/>
-            <button className="material-symbols-rounded">arrow_upward</button>
-          </form>
+          <ChatForm />
         </div>
       </div>
     </div>
