@@ -78,6 +78,7 @@ body {
 .chat-body {
     display: flex;
     flex-direction: column;
+    margin-bottom: 100px;
     gap: 20px;
     height: 460px;
     overflow-y: auto;
