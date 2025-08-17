@@ -6,6 +6,29 @@ import { useState } from "react";
 const App = () => {
   const [chatHistory, setChatHistory] = useState([]);
 
+  // generate bot response
+  const generateBotResponse = async (history) => {
+    
+    // Format chat history for the API request
+    history = history.map((type, text) => ({type, parts: [{text}]}));
+
+    const requestOptions = {
+      method: 'POST',
+      headers: {"Content-Type": "application/json" },
+      body: JSON.stringify({ contents: history })
+    }
+
+    try {
+      // Make the API call to get the bot response
+      const response = await fetch(import.meta.env.VITE_API_URL, requestOptions);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error.message || "Something went wrong");
+      console.log(data);
+    } catch (error) {
+      console.error("Error fetching bot response:", error);
+    }
+  };
+
   return (
     <div className="container">
       <div className="chatbot-popup">
@@ -35,7 +58,7 @@ const App = () => {
 
         {/* ChatBot footer */}
         <div className="chat-footer">
-          <ChatForm setChatHistory={setChatHistory} />
+          <ChatForm chatHistory={chatHistory} setChatHistory={setChatHistory} generateBotResponse={generateBotResponse} />
         </div>
       </div>
     </div>

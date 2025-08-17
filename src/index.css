@@ -84,7 +84,7 @@ body {
     overflow-y: auto;
     padding: 25px 22px;
     scrollbar-width: thin;
-    scrollbar-color: #f29e0c transparent;
+    scrollbar-color: #302f30 transparent;
 }
 
 .chat-body .message {
