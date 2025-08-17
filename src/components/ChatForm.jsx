@@ -13,6 +13,7 @@ const ChatForm = ({setChatHistory}) => {
         // update chat history with user message
         setChatHistory(history => [...history, { type: 'user', text: userMessage }]);
 
+        // "Thinking..." message
         setTimeout(() => setChatHistory((history) => [...history, { type: 'model', text: "Thinking..." }]), 600);
     }
 

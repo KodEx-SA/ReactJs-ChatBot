@@ -1,3 +1,5 @@
+import ChatBotIcon from './ChatBotIcon'; // Import the ChatBot icon component
+
 const ChatMessage = ({chat}) => {
     return (
         <div className={`message ${chat.type === "model" ? "bot" : "user"}-message`}>
