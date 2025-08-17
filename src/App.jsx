@@ -27,7 +27,7 @@ const App = () => {
             </p>
           </div>
 
-          {/* Display chat history */}
+          {/* Display/render chat history dynamically */}
           {chatHistory.map((chat, index) => (
             <ChatMessage key={index} chat={chat} />
           ))}

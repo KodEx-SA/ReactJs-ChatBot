@@ -1,10 +1,9 @@
-const ChatMessage = () => {
+const ChatMessage = ({chat}) => {
     return (
-        <div className="message user-message">
+        <div className={`message ${chat.type === "model" ? "bot" : "user"}-message`}>
+            {chat.type === "model" && <ChatBotIcon /> /* Display ChatBot icon for bot messages */}
             <p className="message-text">
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sit,
-                error corrupti laboriosam officiis aperiam asperiores temporibus aspernatur veniam odit mollitia,
-                recusandae labore molestias minus inventore optio neque consequatur, ad quibusdam?
+                {chat.text}
             </p>
         </div>
     )
