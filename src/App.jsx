@@ -13,7 +13,7 @@ const App = () => {
     history = history.map((type, text) => ({ type, parts: [{ text }] }));
 
     const requestOptions = {
-      method: 'POST',
+      method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ contents: history })
     }
