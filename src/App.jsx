@@ -8,13 +8,13 @@ const App = () => {
 
   // generate bot response
   const generateBotResponse = async (history) => {
-    
+
     // Format chat history for the API request
-    history = history.map((type, text) => ({type, parts: [{text}]}));
+    history = history.map((type, text) => ({ type, parts: [{ text }] }));
 
     const requestOptions = {
       method: 'POST',
-      headers: {"Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ contents: history })
     }
 
