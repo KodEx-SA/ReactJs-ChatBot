@@ -10,7 +10,7 @@ const App = () => {
   const generateBotResponse = async (history) => {
 
     // Format chat history for the API request
-    history = history.map((type, text) => ({ type, parts: [{ text }] }));
+    history = history.map(chat => ({ type: chat.type, parts: [{ text: chat.text }] }));
 
     const requestOptions = {
       method: "POST",
