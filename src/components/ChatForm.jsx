@@ -1,30 +1,34 @@
 import React, { useRef } from "react";
 
-const ChatForm = ({chatHistory, setChatHistory, generateBotResponse}) => {
+const ChatForm = ({ generateBotResponse }) => {
     const inputRef = useRef();
-    
+
     const handleFormSubmit = (e) => {
         e.preventDefault();
 
         const userMessage = inputRef.current.value.trim();
-        if (!userMessage) return;
-        inputRef.current.value = "";
-        
-        // update chat history with user message
-        setChatHistory(history => [...history, { type: 'user', text: userMessage }]);
+        if (!userMessage) {
+            console.warn("Empty input submitted");
+            return;
+        }
+        inputRef.current.value = ""; // Clear input
 
-        // "Thinking..." message
-        setTimeout(() => setChatHistory((history) => [...history, { type: 'model', text: "Thinking..." }]), 600);
-
-        generateBotResponse([...chatHistory, { type: 'user', text: userMessage }]);
+        console.log("Submitting user message:", userMessage); // Log user message
+        generateBotResponse(userMessage); // Pass only the user message
     };
 
     return (
         <form action="" className="chat-form" onSubmit={handleFormSubmit}>
-            <input ref={inputRef} type="text" className="message-input" placeholder="Message...." required />
+            <input
+                ref={inputRef}
+                type="text"
+                className="message-input"
+                placeholder="Message..."
+                required
+            />
             <button className="material-symbols-rounded">arrow_upward</button>
         </form>
-    )
-}
+    );
+};
 
-export default ChatForm
+export default ChatForm;
