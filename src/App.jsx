@@ -19,68 +19,69 @@ const App = () => {
   // Generate bot response
   const generateBotResponse = async (userMessage) => {
     if (!userMessage || typeof userMessage !== "string" || userMessage.trim() === "") {
-      // console.warn("Invalid or empty user message:", userMessage);
-      return; // Prevent empty or invalid messages
+      console.warn("Invalid or empty user message:", userMessage);
+      return;
     }
 
-    console.log("User message:", userMessage); // Log user message
-    setChatHistory((history) => [...history, { type: "user", text: userMessage }]);
+    // Add user message to history
+    setChatHistory((prev) => [...prev, { type: "user", text: userMessage }]);
 
-    // Format chat history for the API request
-    const formattedHistory = chatHistory
-      .filter((chat) => chat.text !== "Thinking...")
-      .map(({ type, text }) => ({
-        role: type === "user" ? "user" : "model",
-        parts: [{ text }],
-      }));
-    // console.log("Formatted history for API:", formattedHistory); // Log formatted history
-
-    // Add "Thinking..." message
-    setChatHistory((history) => [...history, { type: "model", text: "Thinking..." }]);
-
-    const requestOptions = {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [...formattedHistory, { role: "user", parts: [{ text: userMessage }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 1000 },
-      }),
-    };
-
-    // console.log("Sending API request with body:", requestOptions.body); // Log request body
+    // Add "Thinking..." placeholder
+    setChatHistory((prev) => [...prev, { type: "model", text: "Thinking..." }]);
 
     try {
-      // Environment variables
       const API_KEY = import.meta.env.VITE_API_KEY;
       const API_URL = import.meta.env.VITE_API_URL;
 
-      // Make the API call to get the bot response
+      if (!API_KEY || !API_URL) {
+        throw new Error("API key or URL is missing. Check your .env file.");
+      }
+
+      // Format chat history for API, including the new user message
+      const formattedHistory = [
+        ...chatHistory
+          .filter((chat) => chat.text !== "Thinking...")
+          .map(({ type, text }) => ({
+            role: type === "user" ? "user" : "model",
+            parts: [{ text }],
+          })),
+        { role: "user", parts: [{ text: userMessage }] },
+      ];
+
+      const requestOptions = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: formattedHistory,
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1000 },
+        }),
+      };
+
+      console.log("Sending API request with body:", requestOptions.body);
+
       const response = await fetch(`${API_URL}?key=${API_KEY}`, requestOptions);
       const data = await response.json();
+      console.log("Raw API response:", data);
+
       if (!response.ok) {
         console.error("Gemini API error response:", data);
-        throw new Error(data.error?.message || "Something went wrong!");
+        throw new Error(data.error?.message || "API request failed");
       }
 
       const botResponse = data?.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't find an answer.";
-      console.log("Gemini response:", botResponse); // Log bot response
 
-      // Update chat history with bot response
-      setChatHistory((history) => {
-        const updatedHistory = history.filter((chat) => chat.text !== "Thinking...");
-        console.log("Updated chat history:", [...updatedHistory, { type: "model", text: botResponse }]); // Log final chat history
-        return [...updatedHistory, { type: "model", text: botResponse }];
-      });
+      // Update history with bot response, removing "Thinking..."
+      setChatHistory((prev) => [
+        ...prev.filter((chat) => chat.text !== "Thinking..."),
+        { type: "model", text: botResponse },
+      ]);
     } catch (error) {
       console.error("Error fetching bot response:", error);
       const errorMessage = "Sorry, I couldn't process your request. Please try again.";
-      console.log("Adding error message to chat history:", errorMessage);
-
-      // Update chat history with error message
-      setChatHistory((history) => {
-        const updatedHistory = history.filter((chat) => chat.text !== "Thinking...");
-        return [...updatedHistory, { type: "model", text: errorMessage }];
-      });
+      setChatHistory((prev) => [
+        ...prev.filter((chat) => chat.text !== "Thinking..."),
+        { type: "model", text: errorMessage },
+      ]);
     }
   };
 
