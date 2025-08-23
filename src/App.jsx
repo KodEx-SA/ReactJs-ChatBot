@@ -2,6 +2,7 @@ import ChatBotIcon from "./components/ChatBotIcon";
 import ChatForm from "./components/ChatForm";
 import ChatMessage from "./components/ChatMessage";
 import { useState, useRef, useEffect } from "react";
+import Groq from "groq-sdk";
 
 const App = () => {
   const [chatHistory, setChatHistory] = useState([
@@ -30,45 +31,34 @@ const App = () => {
     setChatHistory((prev) => [...prev, { type: "model", text: "Thinking..." }]);
 
     try {
-      const API_KEY = import.meta.env.VITE_API_KEY;
-      const API_URL = import.meta.env.VITE_API_URL;
-
-      if (!API_KEY || !API_URL) {
-        throw new Error("API key or URL is missing. Check your .env file.");
+      const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+      if (!API_KEY) {
+        throw new Error("Groq API key is missing. Check your .env file.");
       }
 
-      // Format chat history for API, including the new user message
-      const formattedHistory = [
+      const groq = new Groq({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
+
+      // Format chat history for Groq API, including the new user message
+      const messages = [
         ...chatHistory
           .filter((chat) => chat.text !== "Thinking...")
           .map(({ type, text }) => ({
-            role: type === "user" ? "user" : "model",
-            parts: [{ text }],
+            role: type === "user" ? "user" : "assistant",
+            content: text,
           })),
-        { role: "user", parts: [{ text: userMessage }] },
+        { role: "user", content: userMessage },
       ];
 
-      const requestOptions = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: formattedHistory,
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1000 },
-        }),
-      };
+      console.log("Sending Groq API request with messages:", messages);
 
-      console.log("Sending API request with body:", requestOptions.body);
+      const chatCompletion = await groq.chat.completions.create({
+        messages,
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.7,
+        max_tokens: 1000,
+      });
 
-      const response = await fetch(`${API_URL}?key=${API_KEY}`, requestOptions);
-      const data = await response.json();
-      console.log("Raw API response:", data);
-
-      if (!response.ok) {
-        console.error("Gemini API error response:", data);
-        throw new Error(data.error?.message || "API request failed");
-      }
-
-      const botResponse = data?.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't find an answer.";
+      const botResponse = chatCompletion.choices[0]?.message?.content || "I couldn't find an answer.";
 
       // Update history with bot response, removing "Thinking..."
       setChatHistory((prev) => [
@@ -76,7 +66,7 @@ const App = () => {
         { type: "model", text: botResponse },
       ]);
     } catch (error) {
-      console.error("Error fetching bot response:", error);
+      console.error("Error fetching Groq response:", error);
       const errorMessage = "Sorry, I couldn't process your request. Please try again.";
       setChatHistory((prev) => [
         ...prev.filter((chat) => chat.text !== "Thinking..."),
