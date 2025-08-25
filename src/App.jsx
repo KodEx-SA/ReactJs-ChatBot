@@ -60,7 +60,7 @@ const App = () => {
       const chatCompletion = await groq.chat.completions.create({ // Create chat completion
         messages,
         model: 'llama-3.3-70b-versatile', // Specify model
-        temperature: 0.7, // Set creativity level
+        temperature: 0.7, // Set creativity level -> randomness of responses
         max_tokens: 1000, // Limit response length
       });
 
