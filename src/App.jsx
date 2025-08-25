@@ -20,55 +20,59 @@ const App = () => {
 
   // Function to handle user message and get bot response
   const generateBotResponse = async (userMessage) => { // Accept userMessage as a parameter
-    if (!userMessage || typeof userMessage !== 'string' || userMessage.trim() === '') {
+    if (!userMessage || typeof userMessage !== 'string' || userMessage.trim() === '') { // Validate input
       console.warn('Invalid or empty user message:', userMessage);
       return;
     }
 
     // Add user message to history
-    setChatHistory((prev) => [...prev, { type: 'user', text: userMessage }]);
+    setChatHistory((prev) => [...prev, { type: 'user', text: userMessage }]); // Append user message
 
-    // Add "Thinking..." placeholder
-    setChatHistory((prev) => [...prev, { type: 'model', text: 'Thinking...' }]);
+    setChatHistory((prev) => [...prev, { type: 'model', text: 'Thinking...' }]); // Show thinking state
 
     try {
       const API_KEY = import.meta.env.VITE_GROQ_API_KEY; // Use Groq API key from environment variables
 
-      if (!API_KEY) {
+      if (!API_KEY) { // Validate API key
         throw new Error('Groq API key is missing. Check your .env file.');
       }
 
-      const groq = new Groq({ apiKey: API_KEY, dangerouslyAllowBrowser: true }); // Initialize Groq client
+      const groq = new Groq({ apiKey: API_KEY, dangerouslyAllowBrowser: true }); // Initialize Groq client for browser use
 
-      // Format chat history(state) for Groq API
+      // Prepare messages for Groq API call including history and current user message
+      // Construct message array
+
       const messages = [
-          ...chatHistory // Use existing chat history
-          .filter((chat) => chat.text !== 'Thinking...') // Exclude "Thinking..." from history
-          .map(({ type, text }) => ({ // Map to Groq message format
+          ...chatHistory // Include previous chat history
+          .filter((chat) => chat.text !== 'Thinking...') // Exclude "Thinking..." placeholders
+
+          .map(({ type, text }) => ({ // Map to API format
             role: type === 'user' ? 'user' : 'assistant',
             content: text,
           })),
+
         { role: 'user', content: userMessage }, // Add current user message
-      ];
+      ]; // End of messages array
 
       console.log('Sending Groq API request with messages:', messages);
 
       // Call Groq chat completion API
-      const chatCompletion = await groq.chat.completions.create({
+      const chatCompletion = await groq.chat.completions.create({ // Create chat completion
         messages,
-        model: 'llama-3.3-70b-versatile', // Specify the model
-        temperature: 0.7, // Set temperature for response variability
+        model: 'llama-3.3-70b-versatile', // Specify model
+        temperature: 0.7, // Set creativity level
         max_tokens: 1000, // Limit response length
       });
 
-      const botResponse = chatCompletion.choices[0]?.message?.content || "I couldn't find an answer."; // Safely access response content
+      const botResponse = chatCompletion.choices[0]?.message?.content || "I couldn't find an answer."; // Extract bot response
       console.log('Received Groq response:', botResponse);
 
-      // Update history with bot response, removing "Thinking..."
+      // Update history with actual bot response, removing "Thinking..."
       setChatHistory((prev) => [
-        ...prev.filter((chat) => chat.text !== 'Thinking...'), // Remove placeholder
-        { type: 'model', text: botResponse }, // Add actual bot response
+        ...prev.filter((chat) => chat.text !== 'Thinking...'), // Remove "Thinking..."
+        { type: 'model', text: botResponse }, // Add bot response
       ]);
+
     } catch (error) {
       console.error('Error fetching Groq response:', error);
       const errorMessage = "Sorry, I couldn't process your request. Please try again.";
@@ -77,7 +81,7 @@ const App = () => {
       setChatHistory((prev) => [
         ...prev.filter((chat) => chat.text !== 'Thinking...'),
         { type: 'model', text: errorMessage },
-      ]);
+      ]); // End of error handling
     }
   };
 
