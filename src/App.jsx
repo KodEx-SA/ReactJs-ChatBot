@@ -18,9 +18,8 @@ const App = () => {
     }
   }, [chatHistory]); // Re-run when chatHistory changes
 
-  // Generate bot response
+  // Function to handle user message and get bot response
   const generateBotResponse = async (userMessage) => { // Accept userMessage as a parameter
-
     if (!userMessage || typeof userMessage !== 'string' || userMessage.trim() === '') {
       console.warn('Invalid or empty user message:', userMessage);
       return;
@@ -41,7 +40,7 @@ const App = () => {
 
       const groq = new Groq({ apiKey: API_KEY, dangerouslyAllowBrowser: true }); // Initialize Groq client
 
-      // Format chat history for Groq API
+      // Format chat history(state) for Groq API
       const messages = [
           ...chatHistory // Use existing chat history
           .filter((chat) => chat.text !== 'Thinking...') // Exclude "Thinking..." from history
