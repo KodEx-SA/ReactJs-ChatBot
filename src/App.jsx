@@ -61,7 +61,7 @@ const App = () => {
         messages,
         model: 'llama-3.3-70b-versatile', // Specify model
         temperature: 0.7, // Set creativity level -> randomness of responses
-        max_tokens: 1000, // Limit response length
+        max_tokens: 3000, // Limit response length
       });
 
       const botResponse = chatCompletion.choices[0]?.message?.content || "I couldn't find an answer."; // Extract bot response
