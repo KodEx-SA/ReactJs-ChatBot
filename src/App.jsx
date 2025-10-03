@@ -10,7 +10,7 @@ const TEMPERATURE = 0.7;
 const MAX_TOKENS = 3000;
 const INITIAL_MESSAGE = {
   type: 'model',
-  text: 'Hey there 👋! How can I help you today? (I\'m an AI assistant powered by Groq, ask me anything!)',
+  text: 'Hey there 👋! How can I help you today?',
   timestamp: Date.now(),
 };
 const ERROR_MESSAGE = {
