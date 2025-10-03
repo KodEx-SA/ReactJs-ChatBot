@@ -1,10 +1,8 @@
 import { useRef } from 'react';
 
-// ChatForm component for user input
-const ChatForm = ({ generateBotResponse, isLoading }) => {
+const ChatForm = ({ generateBotResponse, isLoading, disabled }) => {
   const inputRef = useRef(null);
 
-  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     const userMessage = inputRef.current?.value.trim();
@@ -19,17 +17,24 @@ const ChatForm = ({ generateBotResponse, isLoading }) => {
   };
 
   return (
-    <form className="chat-form" onSubmit={handleSubmit}>
+    <form className="chat-form" onSubmit={handleSubmit} role="form" aria-label="Chat input form">
       <input
         ref={inputRef}
         type="text"
         className="message-input"
-        placeholder="Message..."
-        required
-        disabled={isLoading}
+        placeholder="Type a message..."
+        autoFocus
+        disabled={disabled || isLoading}
+        role="textbox"
+        aria-label="Message input"
       />
-      <button type="submit" className="material-symbols-rounded" disabled={isLoading}>
-        arrow_upward
+      <button
+        type="submit"
+        className="material-symbols-rounded"
+        disabled={disabled || isLoading}
+        aria-label="Send message"
+      >
+        send
       </button>
     </form>
   );
