@@ -1,35 +1,23 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Groq from 'groq-sdk';
 import ChatBotIcon from './components/ChatBotIcon';
 import ChatForm from './components/ChatForm';
 import ChatMessage from './components/ChatMessage';
 
-// Constants
 const MODEL_NAME = 'llama-3.3-70b-versatile';
 const TEMPERATURE = 0.7;
 const MAX_TOKENS = 3000;
-const INITIAL_MESSAGE = {
+
+const createInitialMessage = () => ({
+  id: 'initial',
   type: 'model',
-  text: 'Hey there 👋! How can I help you today?',
+  text: "Hey there 👋 I'm your AI Assistant — ask me anything, and I'll do my best to help.",
   timestamp: Date.now(),
-};
-const ERROR_MESSAGE = {
-  type: 'model',
-  text: 'Sorry, I couldn\'t process your request. Please try again.',
-  className: 'error-message',
-  timestamp: Date.now(),
-};
-const THINKING_MESSAGE = {
-  type: 'model',
-  text: 'Thinking',
-  className: 'thinking-message',
-  timestamp: Date.now(),
-};
+});
 
 const App = () => {
-  const [chatHistory, setChatHistory] = useState([INITIAL_MESSAGE]);
+  const [chatHistory, setChatHistory] = useState([createInitialMessage()]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(true);
   const chatBodyRef = useRef(null);
 
   useEffect(() => {
@@ -38,34 +26,31 @@ const App = () => {
     }
   }, [chatHistory]);
 
-  const toggleChat = () => {
-    setIsOpen(!isOpen);
-  };
+  const clearChat = useCallback(() => {
+    setChatHistory([createInitialMessage()]);
+  }, []);
 
   const handleGenerateBotResponse = async (userMessage) => {
-    if (!userMessage || typeof userMessage !== 'string' || userMessage.trim() === '') {
-      console.warn('Invalid or empty user message:', userMessage);
-      return;
-    }
+    if (!userMessage?.trim()) return;
+
+    const botMsgId = `bot-${Date.now()}`;
 
     setChatHistory((prev) => [
       ...prev,
-      { type: 'user', text: userMessage, timestamp: Date.now() },
-      { ...THINKING_MESSAGE, id: Date.now() },
+      { id: `user-${Date.now()}`, type: 'user', text: userMessage, timestamp: Date.now() },
+      { id: botMsgId, type: 'model', text: '', isThinking: true, timestamp: Date.now() },
     ]);
     setIsLoading(true);
 
     try {
       const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-      if (!apiKey) {
-        throw new Error('Groq API key is missing. Check your .env file.');
-      }
+      if (!apiKey) throw new Error('Groq API key is missing. Check your .env file.');
 
       const groq = new Groq({ apiKey, dangerouslyAllowBrowser: true });
 
       const messages = [
         ...chatHistory
-          .filter((chat) => chat.text !== THINKING_MESSAGE.text)
+          .filter((c) => !c.isThinking && c.text)
           .map(({ type, text }) => ({
             role: type === 'user' ? 'user' : 'assistant',
             content: text,
@@ -73,62 +58,83 @@ const App = () => {
         { role: 'user', content: userMessage },
       ];
 
-      const chatCompletion = await groq.chat.completions.create({
+      const stream = await groq.chat.completions.create({
         messages,
         model: MODEL_NAME,
         temperature: TEMPERATURE,
         max_tokens: MAX_TOKENS,
+        stream: true,
       });
 
-      const botResponse = chatCompletion.choices[0]?.message?.content || 'Sorry, no response received.';
-      setChatHistory((prev) => [
-        ...prev.filter((chat) => chat.text !== THINKING_MESSAGE.text),
-        { type: 'model', text: botResponse, timestamp: Date.now() },
-      ]);
+      let fullText = '';
+      for await (const chunk of stream) {
+        const delta = chunk.choices[0]?.delta?.content || '';
+        fullText += delta;
+        setChatHistory((prev) =>
+          prev.map((c) =>
+            c.id === botMsgId ? { ...c, text: fullText, isThinking: false } : c
+          )
+        );
+      }
     } catch (error) {
-      console.error('Error fetching Groq response:', error);
-      setChatHistory((prev) => [
-        ...prev.filter((chat) => chat.text !== THINKING_MESSAGE.text),
-        { ...ERROR_MESSAGE, timestamp: Date.now() },
-      ]);
+      setChatHistory((prev) =>
+        prev.map((c) =>
+          c.id === botMsgId
+            ? {
+                ...c,
+                text: 'Sorry, I couldn\'t process your request. Please try again.',
+                isThinking: false,
+                isError: true,
+              }
+            : c
+        )
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
+  const messageCount = chatHistory.filter((c) => c.type === 'user').length;
+
   return (
-    <div className="container">
-      {isOpen ? (
-        <div className="chatbot-popup">
-          <div className="chat-header">
-            <div className="header-info">
-              <ChatBotIcon />
-              <h2 className="logo-text">AI Assistant</h2>
-            </div>
-            <button
-              className="material-symbols-rounded"
-              onClick={toggleChat}
-              aria-label="Close chat window"
-            >
-              close
-            </button>
-          </div>
-          <div className="chat-body" ref={chatBodyRef}>
-            {chatHistory.map((chat, index) => (
-              <ChatMessage key={index} chat={chat} />
-            ))}
-          </div>
-          <div className="chat-footer">
-            <ChatForm
-              generateBotResponse={handleGenerateBotResponse}
-              isLoading={isLoading}
-              disabled={isLoading}
-            />
+    <div className="app">
+      <header className="app-header">
+        <div className="header-brand">
+          <ChatBotIcon />
+          <div className="brand-text">
+            <span className="brand-name">AI Assistant</span>
+            <span className="brand-model">llama-3.3-70b</span>
           </div>
         </div>
-      ) : (
-        <ChatBotIcon className="floating-chat-icon" onClick={toggleChat} />
-      )}
+        <div className="header-actions">
+          {messageCount > 0 && (
+            <span className="message-count">{messageCount} message{messageCount !== 1 ? 's' : ''}</span>
+          )}
+          <button className="clear-btn" onClick={clearChat} title="Clear conversation">
+            <span className="material-symbols-rounded">delete_sweep</span>
+            <span>Clear</span>
+          </button>
+        </div>
+      </header>
+
+      <main className="chat-main">
+        <div className="chat-body" ref={chatBodyRef}>
+          <div className="messages-container">
+            {chatHistory.map((chat) => (
+              <ChatMessage key={chat.id} chat={chat} />
+            ))}
+          </div>
+        </div>
+      </main>
+
+      <footer className="chat-footer">
+        <div className="footer-inner">
+          <ChatForm generateBotResponse={handleGenerateBotResponse} isLoading={isLoading} />
+          <p className="footer-note">
+            AI can make mistakes. Verify important information.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };

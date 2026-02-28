@@ -1,42 +1,62 @@
-import { useRef } from 'react';
+import { useRef, useCallback } from 'react';
 
-const ChatForm = ({ generateBotResponse, isLoading, disabled }) => {
-  const inputRef = useRef(null);
+const SendIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="22" y1="2" x2="11" y2="13" />
+    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+  </svg>
+);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const userMessage = inputRef.current?.value.trim();
-    if (!userMessage) {
-      console.warn('Empty input submitted');
-      return;
+const ChatForm = ({ generateBotResponse, isLoading }) => {
+  const textareaRef = useRef(null);
+
+  const handleSubmit = useCallback(() => {
+    const value = textareaRef.current?.value.trim();
+    if (!value || isLoading) return;
+    textareaRef.current.value = '';
+    textareaRef.current.style.height = 'auto';
+    generateBotResponse(value);
+  }, [generateBotResponse, isLoading]);
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
     }
+  };
 
-    console.log('Form submitted with user message:', userMessage);
-    inputRef.current.value = '';
-    generateBotResponse(userMessage);
+  const handleInput = (e) => {
+    const el = e.target;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
   };
 
   return (
-    <form className="chat-form" onSubmit={handleSubmit} role="form" aria-label="Chat input form">
-      <input
-        ref={inputRef}
-        type="text"
+    <div className="chat-form">
+      <textarea
+        ref={textareaRef}
         className="message-input"
-        placeholder="Type a message..."
-        autoFocus
-        disabled={disabled || isLoading}
-        role="textbox"
+        placeholder="Message AI Assistant... (Shift+Enter for new line)"
+        rows={1}
+        disabled={isLoading}
+        onKeyDown={handleKeyDown}
+        onInput={handleInput}
         aria-label="Message input"
       />
       <button
-        type="submit"
-        className="material-symbols-rounded"
-        disabled={disabled || isLoading}
+        className="send-btn"
+        onClick={handleSubmit}
+        disabled={isLoading}
         aria-label="Send message"
+        title="Send (Enter)"
       >
-        send
+        {isLoading ? (
+          <span className="send-spinner" />
+        ) : (
+          <SendIcon />
+        )}
       </button>
-    </form>
+    </div>
   );
 };
 
