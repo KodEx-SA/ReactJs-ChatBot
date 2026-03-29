@@ -131,7 +131,7 @@ const App = () => {
         <div className="footer-inner">
           <ChatForm generateBotResponse={handleGenerateBotResponse} isLoading={isLoading} />
           <p className="footer-note">
-            AI can make mistakes. Verify important information.
+            AI can make mistakes. Verify important information. Developed by Ashley K Motsie
           </p>
         </div>
       </footer>
