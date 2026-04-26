@@ -43,7 +43,7 @@ const App = () => {
     setIsLoading(true);
 
     try {
-      const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+      const apiKey = import.meta.env.GROQ_API_KEY;
       if (!apiKey) throw new Error('Groq API key is missing. Check your .env file.');
 
       const groq = new Groq({ apiKey, dangerouslyAllowBrowser: true });
